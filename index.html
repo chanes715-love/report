@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     
-    <!-- Firebase CDN (使用 Compat 版本以便於單一檔案撰寫) -->
+    <!-- Firebase CDN -->
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
     
@@ -24,10 +24,10 @@
     <style>
         [v-cloak] { display: none !important; }
         
-        /* 視覺風格重塑 (參考附圖 image_50b0b7.png) */
+        /* 視覺風格重塑 */
         body { 
             font-family: 'Klee One', 'Noto Serif TC', serif; 
-            background-color: #C5DEB4; /* 青瓷綠底色 */
+            background-color: #C5DEB4; 
             color: #2C3E3A; 
             margin: 0; 
         }
@@ -92,9 +92,8 @@
             <div>🚀 系統處理中，請稍候...</div>
         </div>
 
-        <!-- 頂部標題區 (仿附圖風格) -->
+        <!-- 頂部標題區 -->
         <div class="text-center mb-10 mt-4 relative">
-            <!-- 右上角登入控制 -->
             <div class="absolute right-0 top-0 flex gap-2">
                 <button v-if="currentView === 'public'" @click="currentView = 'login'" class="btn-gray px-4 py-2 rounded-full text-sm shadow">管理登入</button>
                 <button v-if="currentView !== 'public'" @click="currentView = 'public'" class="btn-gray px-4 py-2 rounded-full text-sm shadow">返回首頁</button>
@@ -117,7 +116,6 @@
         <!-- 畫面一：公開佈告欄 -->
         <div v-if="currentView === 'public'">
             
-            <!-- 仿附圖的膠囊搜尋列 -->
             <div class="search-bar-container mb-12">
                 <span class="pl-4 text-gray-400">🔍</span>
                 <select v-model="searchDept" class="search-input text-gray-600 font-bold">
@@ -131,10 +129,8 @@
                 目前尚無符合的提醒資料。
             </div>
             
-            <!-- 網格卡片排版 (仿附圖) -->
             <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div v-for="item in paginatedPublicItems" :key="item.id" class="item-card flex flex-col p-5">
-                    <!-- 頂部彩色標籤 (依據處室分配顏色) -->
                     <div class="flex justify-between items-start mb-2">
                         <span class="card-tag shadow-sm" :class="getDeptColor(item.dept)">
                             {{ item.dept }}
@@ -146,11 +142,9 @@
 
                     <h3 class="title-font text-2xl mb-3 text-[#2C3E3A] leading-snug">{{ item.formName }}</h3>
                     
-                    <!-- 內容說明區塊 (仿附圖黃色底色) -->
                     <div v-if="item.content" class="bg-[#FFF9E6] p-4 rounded-lg mb-4 text-[#4A4A4A] text-sm display-content ql-editor flex-grow border border-[#FDE68A]" v-html="item.content"></div>
                     <div v-else class="flex-grow"></div>
 
-                    <!-- 底部資訊 -->
                     <div class="mt-4 pt-3 border-t border-gray-100 flex flex-col gap-1">
                         <div class="text-red-600 font-black text-[15px]">
                             📅 期限: {{ formatDeadline(item.deadline) }}
@@ -235,24 +229,19 @@
             </div>
         </div>
 
-        <!-- 畫面四：管理員後台 (Excel 匯入與使用者管理) -->
+        <!-- 畫面四：管理員後台 -->
         <div v-if="currentView === 'admin' && user && user.isAdmin" class="bg-white p-6 rounded-2xl shadow-lg">
             <div class="flex justify-between items-center border-b pb-4 mb-6">
                 <h2 class="text-2xl title-font text-[#5D8B6E]">👑 使用者與權限管理</h2>
                 
-                <!-- Excel 匯入區塊 -->
                 <div class="flex items-center gap-3">
                     <label class="btn-orange px-4 py-2 rounded-lg shadow cursor-pointer text-sm">
                         📥 匯入 Excel 名單
                         <input type="file" accept=".xlsx, .xls" class="hidden" @change="handleExcelUpload">
                     </label>
-                    <span class="text-xs text-gray-500 font-bold max-w-xs">
-                        * 支援包含「使用者對照表」與「管理員名單」工作表的格式，匯入將會新增/覆蓋現有資料。
-                    </span>
                 </div>
             </div>
 
-            <!-- 單筆新增/修改表單 -->
             <div class="bg-gray-50 p-4 rounded-xl mb-8 border border-gray-200">
                 <h3 class="font-bold mb-3">{{ userForm.id ? '✏️ 編輯使用者' : '➕ 手動新增使用者' }}</h3>
                 <form @submit.prevent="saveUser" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
@@ -282,7 +271,6 @@
                 </form>
             </div>
 
-            <!-- 使用者列表 -->
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm text-gray-700">
                     <thead class="bg-gray-100 text-gray-600 uppercase">
@@ -315,15 +303,16 @@
 
     </div>
 
-    <!-- Vue 與 Quill 初始化 -->
+    <!-- Vue 與腳本區塊 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
     <script>
         // ==========================================
         // 🔴 系統管理員請注意：將下方 config 換成您的 Firebase 專案設定
+        // 確保雙引號為英文半形符號 ""，且不要刪除逗號
         // ==========================================
-      const firebaseConfig = {
+  const firebaseConfig = {
   apiKey: "AIzaSyCnrYdAJJRLW3F6_rO7dXgH1C38O7hpI4U",
   authDomain: "report-94e51.firebaseapp.com",
   projectId: "report-94e51",
@@ -334,7 +323,6 @@
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        // ==========================================
 
         const { createApp } = Vue;
 
@@ -345,11 +333,9 @@
                     isLoading: false, isLoggedIn: false, user: null,
                     userList: [], loginForm: { name: '', pin: '' },
                     items: [], searchDept: '', 
-                    currentPage: 1, itemsPerPage: 12, // 改為12筆較適合網格排版
+                    currentPage: 1, itemsPerPage: 12, 
                     form: { id: null, deadline: '', formName: '', content: '' },
                     quillEditor: null, 
-                    
-                    // Admin 相關
                     adminUserList: [],
                     userForm: { id: null, email: '', name: '', pin: '', dept: '', isAdmin: false }
                 }
@@ -367,7 +353,6 @@
                 }
             },
             computed: {
-                // 【核心修改】逾期 3 天自動隱藏
                 validItems() {
                     const today = new Date();
                     today.setHours(0, 0, 0, 0); 
@@ -376,7 +361,7 @@
                         const dDate = new Date(item.deadline);
                         dDate.setHours(0, 0, 0, 0);
                         const diffDays = (today.getTime() - dDate.getTime()) / (1000 * 3600 * 24);
-                        return diffDays <= 3; // ★ 逾期大於3天就隱藏
+                        return diffDays <= 3; // 逾期大於3天就隱藏
                     });
                 },
                 availableDepts() {
@@ -403,11 +388,9 @@
                 }
             },
             methods: {
-                // 產生隨機/固定配色的標籤
                 getDeptColor(dept) {
                     if(!dept) return 'tag-gray';
                     const colors = ['tag-red', 'tag-yellow', 'tag-green', 'tag-teal', 'tag-purple'];
-                    // 用簡單的 hash 決定處室顏色，確保同處室同色
                     let hash = 0;
                     for (let i = 0; i < dept.length; i++) hash = dept.charCodeAt(i) + ((hash << 5) - hash);
                     return colors[Math.abs(hash) % colors.length];
@@ -427,7 +410,7 @@
                     if (!isoString) return '';
                     const d = new Date(isoString);
                     if (isNaN(d.getTime())) return isoString;
-                    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
                 },
                 formatTaiwanTime(isoString) {
                     if (!isoString) return '';
@@ -436,7 +419,7 @@
                     return d.toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
                 },
                 async initQuill() {
-                    await this.\$nextTick(); 
+                    await this.$nextTick(); 
                     if (!this.quillEditor) {
                         this.quillEditor = new Quill('#editor-container', {
                             theme: 'snow', placeholder: '請填寫細節 (可加超連結)...',
@@ -445,21 +428,16 @@
                         this.quillEditor.on('text-change', () => { this.form.content = this.quillEditor.root.innerHTML; });
                     }
                 },
-                
-                // ==========================================
-                // Firebase 資料庫操作 (取代原本的 GAS)
-                // ==========================================
                 async fetchUsers() {
                     const cached = localStorage.getItem('chanes_users');
                     if (cached) this.userList = JSON.parse(cached);
-                    
                     try {
                         const snapshot = await db.collection('users').get();
                         const users = [];
                         snapshot.forEach(doc => { users.push({ id: doc.id, ...doc.data() }); });
                         this.userList = users;
                         localStorage.setItem('chanes_users', JSON.stringify(users)); 
-                    } catch(e) { console.error("Fetch users error:", e); }
+                    } catch(e) { console.error('Fetch users error:', e); }
                 },
                 async loadData() {
                     if(this.items.length === 0) this.isLoading = true;
@@ -468,18 +446,16 @@
                         const data = [];
                         snapshot.forEach(doc => { data.push({ id: doc.id, ...doc.data() }); });
                         this.items = data;
-                    } catch(e) { console.error("Load data error:", e); }
+                    } catch(e) { console.error('Load data error:', e); }
                     this.isLoading = false;
                 },
                 async login() {
                     if (!this.loginForm.name) return alert('請選擇姓名！');
                     this.isLoading = true;
                     try {
-                        // 從 Firebase 比對帳密
                         const snapshot = await db.collection('users')
                             .where('name', '==', this.loginForm.name)
                             .where('pin', '==', this.loginForm.pin).get();
-                            
                         if (snapshot.empty) {
                             alert('帳號或密碼錯誤！');
                         } else {
@@ -489,7 +465,7 @@
                             this.currentView = 'dashboard';
                             this.initQuill(); 
                         }
-                    } catch(e) { alert("登入失敗，請確認 Firebase 設定！"); }
+                    } catch(e) { alert('登入失敗，請確認 Firebase 設定！'); }
                     this.isLoading = false;
                 },
                 logout() { this.isLoggedIn = false; this.user = null; this.loginForm.pin = ''; this.currentView = 'public'; this.quillEditor = null; },
@@ -498,13 +474,11 @@
                     if(!this.form.deadline) return alert('請選擇繳交期限！');
                     this.isLoading = true;
                     let finalContent = this.form.content === '<p><br></p>' ? '' : this.form.content;
-                    
                     const taskData = {
                         email: this.user.email, name: this.user.name, dept: this.user.dept,
                         deadline: this.form.deadline, formName: this.form.formName, 
                         content: finalContent, timestamp: new Date().toISOString()
                     };
-
                     try {
                         if (this.form.id) {
                             await db.collection('tasks').doc(this.form.id).update(taskData);
@@ -513,7 +487,7 @@
                         }
                         this.resetForm();
                         await this.loadData();
-                    } catch(e) { alert("儲存失敗: " + e.message); }
+                    } catch(e) { alert('儲存失敗: ' + e.message); }
                     this.isLoading = false;
                 },
                 editItem(item) {
@@ -528,14 +502,11 @@
                     try {
                         await db.collection('tasks').doc(id).delete();
                         await this.loadData();
-                    } catch(e) { alert("刪除失敗"); }
+                    } catch(e) { alert('刪除失敗'); }
                     this.isLoading = false;
                 },
                 resetForm() { this.form = { id: null, deadline: '', formName: '', content: '' }; if (this.quillEditor) this.quillEditor.root.innerHTML = ''; },
 
-                // ==========================================
-                // 管理員功能：管理與 Excel 匯入
-                // ==========================================
                 async fetchAdminUsers() {
                     const snapshot = await db.collection('users').get();
                     const users = [];
@@ -553,14 +524,13 @@
                         if (this.userForm.id) {
                             await db.collection('users').doc(this.userForm.id).update(uData);
                         } else {
-                            // 檢查是否已存在
                             const exist = await db.collection('users').where('email', '==', uData.email).get();
-                            if(!exist.empty) throw new Error("Email 已存在");
+                            if(!exist.empty) throw new Error('Email 已存在');
                             await db.collection('users').add(uData);
                         }
                         this.resetUserForm();
                         await this.fetchAdminUsers();
-                        await this.fetchUsers(); // 更新全域選單
+                        await this.fetchUsers(); 
                     } catch(e) { alert(e.message); }
                     this.isLoading = false;
                 },
@@ -573,12 +543,11 @@
                         await db.collection('users').doc(id).delete();
                         await this.fetchAdminUsers();
                         await this.fetchUsers();
-                    } catch(e) { alert("刪除失敗"); }
+                    } catch(e) { alert('刪除失敗'); }
                     this.isLoading = false;
                 },
                 resetUserForm() { this.userForm = { id: null, email: '', name: '', pin: '', dept: '', isAdmin: false }; },
                 
-                // 解析 Excel 並寫入 Firebase
                 handleExcelUpload(e) {
                     const file = e.target.files[0];
                     if (!file) return;
@@ -590,10 +559,9 @@
                             const bstr = evt.target.result;
                             const wb = XLSX.read(bstr, { type: 'binary' });
                             
-                            // 讀取工作表
                             const wsUser = wb.Sheets['使用者對照表'];
                             const wsAdmin = wb.Sheets['管理員名單'];
-                            if(!wsUser) throw new Error("找不到「使用者對照表」工作表");
+                            if(!wsUser) throw new Error('找不到「使用者對照表」工作表');
                             
                             const usersData = XLSX.utils.sheet_to_json(wsUser);
                             const adminData = wsAdmin ? XLSX.utils.sheet_to_json(wsAdmin) : [];
@@ -601,10 +569,9 @@
                             
                             let added = 0, updated = 0;
                             
-                            // 由於前端不適合大量併發寫入，採用迴圈依序處理
                             for (const row of usersData) {
                                 const email = String(row['Email'] || '').trim();
-                                if(!email) continue;
+                                if(!email || email === 'undefined') continue;
                                 
                                 const name = String(row['姓名(未登入)'] || '').trim();
                                 const pin = String(row['PIN碼'] || '').trim();
@@ -613,7 +580,6 @@
                                 
                                 const uData = { email, name, pin, dept, isAdmin };
                                 
-                                // 檢查是否已存在 (透過 email 判斷)
                                 const existSnap = await db.collection('users').where('email', '==', email).get();
                                 if (existSnap.empty) {
                                     await db.collection('users').add(uData);
@@ -624,14 +590,14 @@
                                 }
                             }
                             
-                            alert(`匯入完成！\n新增: ${added} 筆\n更新: ${updated} 筆`);
+                            alert('匯入完成！\n新增: ' + added + ' 筆\n更新: ' + updated + ' 筆');
                             await this.fetchAdminUsers();
                             await this.fetchUsers();
                         } catch(err) {
-                            alert("解析 Excel 發生錯誤：" + err.message);
+                            alert('解析 Excel 發生錯誤：' + err.message);
                         }
                         this.isLoading = false;
-                        e.target.value = ''; // 清空 file input
+                        e.target.value = ''; 
                     };
                     reader.readAsBinaryString(file);
                 }
