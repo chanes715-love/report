@@ -143,7 +143,7 @@
                             {{ item.dept }}
                         </span>
                         
-                        <!-- 修改點：放大的緊急/逾期圖示與文字標註 -->
+                        <!-- 緊急/逾期圖示與文字標註 -->
                         <div v-if="getUrgency(item.deadline).show" class="flex flex-col items-center justify-start mt-[-4px]">
                             <span class="text-3xl leading-none drop-shadow-md">{{ getUrgency(item.deadline).icon }}</span>
                             <span class="text-xs font-black mt-1 tracking-widest" :class="getUrgency(item.deadline).color">
@@ -402,8 +402,13 @@
                         if (!item.deadline) return true;
                         const dDate = new Date(item.deadline);
                         dDate.setHours(0, 0, 0, 0);
+                        // 計算現在與期限的天數差：
+                        // 如果 dDate 是未來，diffDays 為負數
+                        // 如果 dDate 是過去，diffDays 為正數
                         const diffDays = (today.getTime() - dDate.getTime()) / (1000 * 3600 * 24);
-                        return diffDays <= 3; // 逾期大於3天就隱藏
+                        
+                        // 隱藏條件：已經過了超過 3 天 (今天距離期限 > 3)
+                        return diffDays <= 3; 
                     });
                 },
                 availableDepts() {
@@ -441,9 +446,21 @@
                     if (!deadline) return { show: false };
                     const today = new Date(); today.setHours(0, 0, 0, 0);
                     const d = new Date(deadline); d.setHours(0, 0, 0, 0);
+                    
+                    // diffDays = 期限減去今天
+                    // 如果 diffDays > 0 代表在未來 (期限還沒到)
+                    // 如果 diffDays < 0 代表在過去 (已經逾期)
                     const diffDays = (d.getTime() - today.getTime()) / (1000 * 3600 * 24);
-                    if (diffDays > 0 && diffDays <= 3) return { show: true, icon: '🚨', text: '逾期', color: 'text-red-700' };
-                    if (diffDays <= 0 && diffDays >= -3) return { show: true, icon: '🔥', text: '緊急', color: 'text-orange-600' };
+                    
+                    // 逾期：小於 0 天，但大於等於 -3 天
+                    if (diffDays < 0 && diffDays >= -3) {
+                        return { show: true, icon: '🚨', text: '逾期', color: 'text-red-700' };
+                    } 
+                    // 緊急：大於等於 0 天，且小於等於 3 天內
+                    else if (diffDays >= 0 && diffDays <= 3) {
+                        return { show: true, icon: '🔥', text: '緊急', color: 'text-orange-600' };
+                    }
+                    
                     return { show: false };
                 },
                 nextPage() { if (this.currentPage < this.totalPages) { this.currentPage++; window.scrollTo(0,0); } },
