@@ -168,20 +168,35 @@
 
         <!-- 畫面二：登入畫面 -->
         <div v-if="currentView === 'login'" class="bg-white p-8 rounded-2xl shadow-xl max-w-sm mx-auto mt-10 border-t-8 border-[#5D8B6E]">
-            <h1 class="text-2xl title-font text-center mb-8 text-[#2C3E3A]">管理員/發布者登入</h1>
+            <h1 class="text-2xl title-font text-center mb-6 text-[#2C3E3A]">管理員/發布者登入</h1>
             <form @submit.prevent="login">
-                <div class="mb-6">
+                <div class="mb-5">
                     <label class="block text-sm font-bold text-gray-600 mb-2">請選擇姓名</label>
                     <select v-model="loginForm.name" class="input-style" required>
                         <option disabled value="">-- 點擊下拉選擇 --</option>
-                        <option v-for="u in userList" :key="u.name" :value="u.name">{{ u.name }}</option>
+                        <!-- 固定管理員選項 -->
+                        <option value="admin">👑 admin (系統管理員)</option>
+                        <!-- 一般使用者選項，隱藏重複的 admin -->
+                        <option v-for="u in userList" :key="u.name" :value="u.name" v-show="u.name !== 'admin'">{{ u.name }}</option>
                     </select>
                 </div>
-                <div class="mb-8">
+                <div class="mb-6">
                     <label class="block text-sm font-bold text-gray-600 mb-2">密碼 (PIN碼)</label>
-                    <input type="password" v-model="loginForm.pin" class="input-style" placeholder="預設為Email前綴..." required>
+                    <input type="password" v-model="loginForm.pin" class="input-style" placeholder="請輸入密碼..." required>
                 </div>
-                <button type="submit" class="w-full btn-green py-3 rounded-xl text-lg tracking-widest shadow-md">登入系統</button>
+                
+                <div class="hint-box text-left">
+                    <div class="mb-3 border-b border-gray-200 pb-2">
+                        💡 <b>首次使用管理員登入：</b><br>
+                        選擇 <span class="text-[#5D8B6E] font-black">admin</span> (預設密碼 admin)
+                    </div>
+                    <div>
+                        💡 <b>一般處室發布者：</b><br>
+                        選擇您的姓名 <span class="text-xs">(預設為Email前綴)</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full btn-green py-3 mt-4 rounded-xl text-lg tracking-widest shadow-md">登入系統</button>
             </form>
         </div>
 
@@ -247,11 +262,13 @@
                 <form @submit.prevent="saveUser" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">Email</label>
-                        <input type="email" v-model="userForm.email" class="input-style text-sm" required :disabled="!!userForm.id">
+                        <!-- 管理員帳號(admin)禁止修改 Email -->
+                        <input type="email" v-model="userForm.email" class="input-style text-sm" required :disabled="!!userForm.id || userForm.name === 'admin'">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">姓名 (未登入)</label>
-                        <input type="text" v-model="userForm.name" class="input-style text-sm" required>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">姓名 (下拉選單名稱)</label>
+                        <!-- 管理員帳號(admin)禁止修改姓名 -->
+                        <input type="text" v-model="userForm.name" class="input-style text-sm" required :disabled="userForm.name === 'admin'">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">PIN 碼</label>
@@ -259,11 +276,11 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">處室</label>
-                        <input type="text" v-model="userForm.dept" class="input-style text-sm" placeholder="例如: 教務處">
+                        <input type="text" v-model="userForm.dept" class="input-style text-sm" placeholder="例如: 系統管理">
                     </div>
                     <div class="flex gap-2">
                         <label class="flex items-center gap-1 text-sm font-bold mr-2">
-                            <input type="checkbox" v-model="userForm.isAdmin"> 管理員
+                            <input type="checkbox" v-model="userForm.isAdmin" :disabled="userForm.name === 'admin'"> 管理員
                         </label>
                         <button type="submit" class="btn-green px-3 py-2 rounded-lg text-sm flex-1">{{ userForm.id ? '更新' : '新增' }}</button>
                         <button type="button" v-if="userForm.id" @click="resetUserForm" class="btn-gray px-3 py-2 rounded-lg text-sm">取消</button>
@@ -284,7 +301,9 @@
                     </thead>
                     <tbody>
                         <tr v-for="u in adminUserList" :key="u.id" class="border-b hover:bg-gray-50">
-                            <td class="px-4 py-3 font-bold">{{ u.name }}</td>
+                            <td class="px-4 py-3 font-bold">
+                                <span v-if="u.name === 'admin'">👑 </span>{{ u.name }}
+                            </td>
                             <td class="px-4 py-3">{{ u.email }}</td>
                             <td class="px-4 py-3"><span class="bg-[#C5DEB4] text-[#2C3E3A] px-2 py-1 rounded text-xs font-bold">{{ u.dept }}</span></td>
                             <td class="px-4 py-3">
@@ -293,7 +312,7 @@
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <button @click="editUser(u)" class="text-blue-600 font-bold hover:underline mr-3">編輯</button>
-                                <button @click="deleteUser(u.id)" class="text-red-600 font-bold hover:underline">刪除</button>
+                                <button @click="deleteUser(u)" class="text-red-600 font-bold hover:underline" :disabled="u.name === 'admin'" :class="{'opacity-30 cursor-not-allowed': u.name === 'admin'}">刪除</button>
                             </td>
                         </tr>
                     </tbody>
@@ -301,6 +320,30 @@
             </div>
         </div>
 
+        <!-- 修改密碼 Modal (整合 Firebase doc ID 直接更新) -->
+        <div v-if="showPwdModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-40">
+            <div class="card p-6 w-80 max-w-[90%]">
+                <h2 class="text-lg font-black mb-4 text-center text-[#007D85]">修改密碼</h2>
+                <form @submit.prevent="changePassword">
+                    <div class="mb-3">
+                        <label class="block mb-1 text-xs text-gray-600 font-bold">舊密碼</label>
+                        <input type="password" v-model="pwdForm.oldPin" class="input-style text-sm" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="block mb-1 text-xs text-gray-600 font-bold">新密碼</label>
+                        <input type="password" v-model="pwdForm.newPin" class="input-style text-sm" required>
+                    </div>
+                    <div class="mb-5">
+                        <label class="block mb-1 text-xs text-gray-600 font-bold">確認新密碼</label>
+                        <input type="password" v-model="pwdForm.confirm" class="input-style text-sm" required>
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <button type="button" @click="showPwdModal = false; pwdForm={}" class="btn-gray px-3 py-1.5 rounded-lg text-sm font-bold">取消</button>
+                        <button type="submit" class="btn-green px-3 py-1.5 rounded-lg text-sm font-bold">確認修改</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Vue 與腳本區塊 -->
@@ -312,7 +355,7 @@
         // 🔴 系統管理員請注意：將下方 config 換成您的 Firebase 專案設定
         // 確保雙引號為英文半形符號 ""，且不要刪除逗號
         // ==========================================
-  const firebaseConfig = {
+      const firebaseConfig = {
   apiKey: "AIzaSyCnrYdAJJRLW3F6_rO7dXgH1C38O7hpI4U",
   authDomain: "report-94e51.firebaseapp.com",
   projectId: "report-94e51",
@@ -320,7 +363,7 @@
   messagingSenderId: "159568813682",
   appId: "1:159568813682:web:581a9bfa9146ad11dd2ceb"
 };
-        
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
@@ -337,7 +380,8 @@
                     form: { id: null, deadline: '', formName: '', content: '' },
                     quillEditor: null, 
                     adminUserList: [],
-                    userForm: { id: null, email: '', name: '', pin: '', dept: '', isAdmin: false }
+                    userForm: { id: null, email: '', name: '', pin: '', dept: '', isAdmin: false },
+                    showPwdModal: false, pwdForm: { oldPin: '', newPin: '', confirm: '' }
                 }
             },
             mounted() { 
@@ -383,7 +427,7 @@
                 },
                 myItems() {
                     if (!this.user) return [];
-                    if (this.user.isAdmin) return this.items.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    if (this.user.name === 'admin') return this.items.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
                     return this.items.filter(item => item.email === this.user.email).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
                 }
             },
@@ -428,6 +472,8 @@
                         this.quillEditor.on('text-change', () => { this.form.content = this.quillEditor.root.innerHTML; });
                     }
                 },
+                
+                // ===== 使用者與資料載入 =====
                 async fetchUsers() {
                     const cached = localStorage.getItem('chanes_users');
                     if (cached) this.userList = JSON.parse(cached);
@@ -449,6 +495,8 @@
                     } catch(e) { console.error('Load data error:', e); }
                     this.isLoading = false;
                 },
+                
+                // ===== 登入、登出與密碼修改 =====
                 async login() {
                     if (!this.loginForm.name) return alert('請選擇姓名！');
                     this.isLoading = true;
@@ -456,20 +504,51 @@
                         const snapshot = await db.collection('users')
                             .where('name', '==', this.loginForm.name)
                             .where('pin', '==', this.loginForm.pin).get();
+                            
                         if (snapshot.empty) {
+                            // 第一次使用自動初始化 admin 帳號
+                            if (this.loginForm.name === 'admin' && this.loginForm.pin === 'admin') {
+                                const adminCheck = await db.collection('users').where('name', '==', 'admin').get();
+                                if (adminCheck.empty) {
+                                    const newAdmin = { email: 'admin@system.local', name: 'admin', pin: 'admin', dept: '系統管理', isAdmin: true };
+                                    const docRef = await db.collection('users').add(newAdmin);
+                                    this.user = { id: docRef.id, ...newAdmin };
+                                    this.isLoggedIn = true;
+                                    this.currentView = 'admin'; 
+                                    this.initQuill();
+                                    this.isLoading = false;
+                                    return;
+                                }
+                            }
                             alert('帳號或密碼錯誤！');
                         } else {
                             const userDoc = snapshot.docs[0];
                             this.user = { id: userDoc.id, ...userDoc.data() };
                             this.isLoggedIn = true;
-                            this.currentView = 'dashboard';
+                            // admin 登入預設進入使用者管理
+                            this.currentView = this.user.name === 'admin' ? 'admin' : 'dashboard';
                             this.initQuill(); 
                         }
-                    } catch(e) { alert('登入失敗，請確認 Firebase 設定！'); }
+                    } catch(e) { alert('登入失敗，請確認 Firebase 設定！\n' + e.message); }
                     this.isLoading = false;
                 },
                 logout() { this.isLoggedIn = false; this.user = null; this.loginForm.pin = ''; this.currentView = 'public'; this.quillEditor = null; },
+                async changePassword() {
+                    if (this.pwdForm.newPin !== this.pwdForm.confirm) return alert('新密碼不一致！');
+                    this.isLoading = true;
+                    try {
+                        if (String(this.user.pin) !== String(this.pwdForm.oldPin)) {
+                            throw new Error("舊密碼輸入錯誤！");
+                        }
+                        await db.collection('users').doc(this.user.id).update({ pin: String(this.pwdForm.newPin).trim() });
+                        alert('密碼修改成功！請重新登入。'); 
+                        this.showPwdModal = false; 
+                        this.logout(); 
+                    } catch(e) { alert(e.message); }
+                    this.isLoading = false;
+                },
                 
+                // ===== 表單發布管理 =====
                 async saveItem() {
                     if(!this.form.deadline) return alert('請選擇繳交期限！');
                     this.isLoading = true;
@@ -507,11 +586,13 @@
                 },
                 resetForm() { this.form = { id: null, deadline: '', formName: '', content: '' }; if (this.quillEditor) this.quillEditor.root.innerHTML = ''; },
 
+                // ===== 使用者後台管理 (管理員專用) =====
                 async fetchAdminUsers() {
                     const snapshot = await db.collection('users').get();
                     const users = [];
                     snapshot.forEach(doc => { users.push({ id: doc.id, ...doc.data() }); });
-                    this.adminUserList = users;
+                    // admin 帳號置頂顯示
+                    this.adminUserList = users.sort((a, b) => (a.name === 'admin' ? -1 : (b.name === 'admin' ? 1 : 0)));
                 },
                 async saveUser() {
                     this.isLoading = true;
@@ -535,12 +616,13 @@
                     this.isLoading = false;
                 },
                 editUser(u) { this.userForm = { ...u }; },
-                async deleteUser(id) {
-                    if(id === this.user.id) return alert('不能刪除自己！');
+                async deleteUser(u) {
+                    if(u.name === 'admin') return alert('系統管理員帳號不可刪除！');
+                    if(u.id === this.user.id) return alert('不能刪除自己！');
                     if (!confirm('確定要刪除此使用者嗎？')) return;
                     this.isLoading = true;
                     try {
-                        await db.collection('users').doc(id).delete();
+                        await db.collection('users').doc(u.id).delete();
                         await this.fetchAdminUsers();
                         await this.fetchUsers();
                     } catch(e) { alert('刪除失敗'); }
@@ -548,6 +630,7 @@
                 },
                 resetUserForm() { this.userForm = { id: null, email: '', name: '', pin: '', dept: '', isAdmin: false }; },
                 
+                // ===== Excel 批次匯入 =====
                 handleExcelUpload(e) {
                     const file = e.target.files[0];
                     if (!file) return;
